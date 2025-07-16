@@ -64,40 +64,66 @@ def init_driver():
 def login_in():
     try:
         driver = webdriver.Chrome(service=service, options=chrome_options)
+
+        # driver.implicitly_wait(10)
+
         # 5. 打开网页
         driver.get("https://idmsa.apple.com/IDMSWebAuth/signin?appIdKey=891bd3417a7776362562d2197f89480a8547b108fd934911bcbea0110d07f757&path=%2Faccount%2F&rv=1")
 
         # 6. 等待页面加载（示例）
-        time.sleep(3)
+        time.sleep(5)
+
+        driver.refresh()
+
+        # 实例化 By 类的对象
+        by_xpath = By.XPATH
 
         # 7. 执行其他操作（示例）
-        weLoginBtn = driver.find_element("id", "s-top-loginbtn")
-        weLoginBtn.click()
+        # weLoginBtn = driver.find_element("id", "s-top-loginbtn")
+        # weLoginBtn.click()
+        #
+        # # TANGRAM__PSP_11__userName
+        # # 等待最多10秒，直到div元素显示在页面上
+        str_user_name = None
+        input_user_name_element_wait = None
 
-        # TANGRAM__PSP_11__userName
-        # 等待最多10秒，直到div元素显示在页面上
-        input_user_name_element_wait = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__userName"))
-        )
-        print("Div元素已显示！")
         str_user_name = input("user name: ")
-        input_user_name_element_wait.send_keys(f"{str_user_name}")
+        if str_user_name == "":
+            import account_model
+            str_user_name = account_model.user_name
 
-        input_password_element_wait = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__password"))
-        )
-        str_password = input("password: ")
-        input_password_element_wait.send_keys(f"{str_password}")
+        try:
+            input_user_name_element_wait = WebDriverWait(driver, 20).until(
+                # EC.presence_of_element_located((By.ID, "account_name_text_field"))
+                EC.presence_of_element_located((By.XPATH, "//input[@id = 'account_name_text_field']"))
+            )
+            print("Div元素已显示！")
 
-        checkbox_agree_element_wait = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__isAgree"))
-        )
-        checkbox_agree_element_wait.click()
+            input_user_name_element_wait.send_keys(f"{str_user_name}")
+        except Exception as e:
 
-        login_btn_element_wait = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__submit"))
-        )
-        driver.execute_script("arguments[0].click();", login_btn_element_wait)
+            print("error ", e)
+        finally:
+
+            # input_user_name_element_wait.send_keys(f"{str_user_name}")
+            print("加载用户名输入框完成")
+
+        #
+        # input_password_element_wait = WebDriverWait(driver, 10).until(
+        #     EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__password"))
+        # )
+        # str_password = input("password: ")
+        # input_password_element_wait.send_keys(f"{str_password}")
+        #
+        # checkbox_agree_element_wait = WebDriverWait(driver, 10).until(
+        #     EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__isAgree"))
+        # )
+        # checkbox_agree_element_wait.click()
+        #
+        # login_btn_element_wait = WebDriverWait(driver, 10).until(
+        #     EC.presence_of_element_located((By.ID, "TANGRAM__PSP_11__submit"))
+        # )
+        # driver.execute_script("arguments[0].click();", login_btn_element_wait)
 
         # search_box = driver.find_element("name", "q")
         # search_box.send_keys("Selenium Chrome配置")

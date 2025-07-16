@@ -5,12 +5,14 @@ import app_main
 import menu
 import selenium_method
 import utils
+import account_model
 
 
 class Main:
     def __init__(self):
         print("main")
         selenium_method.init_driver()
+        self.read_config()
         self.init_config()
 
     def init_config(self):
@@ -30,7 +32,19 @@ class Main:
             case "3":
                 print(3)
 
-
+    def read_config(self):
+        print("read config")
+        data = utils.read_json_file("./resources/config.json")
+        url = data.get("url")
+        apple_accounts = data.get("apple_accounts")
+        apple_account = apple_accounts[0]
+        account_model.user_name =  apple_account.get("user_name")
+        account_model.password = apple_account.get("password")
+        print(data)
+        print(url)
+        print(apple_account)
+        print(account_model.user_name)
+        print(account_model.password)
 
 
 if __name__ == "__main__":
