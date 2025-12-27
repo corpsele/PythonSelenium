@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 import utils
+import tempfile
 
 
 def init_driver():
@@ -23,11 +24,14 @@ def init_driver():
     elif utils.get_os_from_platform() == "Linux" :
         service = Service("./resources/chromedriver_linux")
 
+    # 创建一个临时的用户数据目录
+    user_data_dir = tempfile.mkdtemp()
     # 1. 配置 Chrome 选项
     chrome_options = Options()
 
     # 2. 常见配置参数（可选）
     # 设置浏览器启动参数
+    chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
     chrome_options.add_argument("--start-maximized")  # 最大化窗口
     chrome_options.add_argument("--disable-infobars")  # 禁用信息栏
     chrome_options.add_argument("--disable-extensions")  # 禁用扩展
@@ -39,10 +43,11 @@ def init_driver():
     # chrome_options.add_argument('--proxy-server=http://127.0.0.1:8080')
 
     # 设置下载路径
-    chrome_options.add_argument("--download-path=./resources/download")
+    # chrome_options.add_argument("--download-path=./resources/download")
 
     # 设置用户数据目录（保留登录状态）
-    # chrome_options.add_argument("--user-data-dir=/path/to/user/data")
+    # chrome_options.add_argument("--user-data-dir=./resources")
+
 
     # 禁用某些功能（如自动播放视频）
     chrome_options.add_argument("--disable-features=MediaRouter")
@@ -68,10 +73,10 @@ def login_in():
         # driver.implicitly_wait(10)
 
         # 5. 打开网页
-        driver.get("https://idmsa.apple.com/IDMSWebAuth/signin?appIdKey=891bd3417a7776362562d2197f89480a8547b108fd934911bcbea0110d07f757&path=%2Faccount%2F&rv=1")
-
+        # driver.get("https://idmsa.apple.com/IDMSWebAuth/signin?appIdKey=891bd3417a7776362562d2197f89480a8547b108fd934911bcbea0110d07f757&path=%2Faccount%2F&rv=1")
+        driver.get('https://developer.apple.com')
         # 6. 等待页面加载（示例）
-        time.sleep(5)
+        time.sleep(1)
 
         driver.refresh()
 
@@ -87,26 +92,52 @@ def login_in():
         str_user_name = None
         input_user_name_element_wait = None
 
-        str_user_name = input("user name: ")
-        if str_user_name == "":
-            import account_model
-            str_user_name = account_model.user_name
+        # str_user_name = input("user name: ")
+        # if str_user_name == "":
+        #     import account_model
+        #     str_user_name = account_model.user_name
 
         try:
-            input_user_name_element_wait = WebDriverWait(driver, 20).until(
-                # EC.presence_of_element_located((By.ID, "account_name_text_field"))
-                EC.presence_of_element_located((By.XPATH, "//input[@id = 'account_name_text_field']"))
+            account_link = WebDriverWait(driver, 50).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "ac-gn-link-account"))
             )
-            print("Div元素已显示！")
+            account_link.click()
+            print("account_link元素已显示！")
 
-            input_user_name_element_wait.send_keys(f"{str_user_name}")
+            main_form = WebDriverWait(driver, 50).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "ac-gn-main-form"))
+            )
+            if main_form.is_displayed():
+                main_form.click()
+
+            main_form = WebDriverWait(driver, 50).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "account-name"))
+            )
+            if main_form.is_displayed():
+                main_form.click()
+                main_form.__setattr__("class", "account-name apple-id-focus")
+                # 使用 JavaScript 设置 value
+                driver.execute_script("arguments[0].class = 'account-name apple-id-focus';", main_form)
+
+            username_field = WebDriverWait(driver, 50).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "account_name_text_field"))
+            )
+            driver.execute_script("arguments[0].data-focus-method = 'mouse';", username_field)
+            username_field.__setattr__("aria-invalid", "mouse")
+            username_field.__setattr__("data-focus-method", "mouse")
+            username_field.click()
+
+            username_field.__setattr__("value", "dd")
+            username_field.send_keys("dd")
+
+            # username_field.send_keys(f"{str_user_name}")
         except Exception as e:
 
             print("error ", e)
         finally:
 
             # input_user_name_element_wait.send_keys(f"{str_user_name}")
-            print("加载用户名输入框完成")
+            print("加载终止")
 
         #
         # input_password_element_wait = WebDriverWait(driver, 10).until(
